@@ -1,4 +1,4 @@
-name: Temporary Polish ASR model transfer
+name: Temporary ASR runtime and model transfer
 
 on:
   push:
@@ -9,23 +9,29 @@ permissions:
   contents: read
 
 jobs:
-  fetch-model:
+  fetch-assets:
     runs-on: ubuntu-latest
     steps:
-      - name: Download public Polish ASR model
+      - name: Download CrispASR runtime and Whisper Large v3 Turbo
         shell: bash
         run: |
           set -euo pipefail
-          URL='https://huggingface.co/cstr/stt-pl-fastconformer-hybrid-ctc-large-GGUF/resolve/main/stt-pl-fastconformer-hybrid-ctc-large-q4_k.gguf?download=true'
-          curl -L --fail --retry 5 --retry-delay 3 --connect-timeout 30 -o /tmp/stt-pl-fastconformer-hybrid-ctc-large-q4_k.gguf "$URL"
-          test -s /tmp/stt-pl-fastconformer-hybrid-ctc-large-q4_k.gguf
-          ls -lh /tmp/stt-pl-fastconformer-hybrid-ctc-large-q4_k.gguf
-          sha256sum /tmp/stt-pl-fastconformer-hybrid-ctc-large-q4_k.gguf
-      - name: Upload model artifact
+          mkdir -p /tmp/asr-assets
+          curl -L --fail --retry 5 --retry-delay 3 --connect-timeout 30 \
+            -o /tmp/asr-assets/crispasr-linux-x86_64.tar.gz \
+            'https://github.com/CrispStrobe/CrispASR/releases/download/v0.8.27/crispasr-linux-x86_64.tar.gz'
+          curl -L --fail --retry 5 --retry-delay 3 --connect-timeout 30 \
+            -o /tmp/asr-assets/ggml-large-v3-turbo-q5_0.bin \
+            'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q5_0.bin?download=true'
+          test -s /tmp/asr-assets/crispasr-linux-x86_64.tar.gz
+          test -s /tmp/asr-assets/ggml-large-v3-turbo-q5_0.bin
+          ls -lh /tmp/asr-assets
+          sha256sum /tmp/asr-assets/*
+      - name: Upload ASR assets
         uses: actions/upload-artifact@v4
         with:
-          name: polish-asr-model
-          path: /tmp/stt-pl-fastconformer-hybrid-ctc-large-q4_k.gguf
+          name: asr-runtime-whisper-turbo
+          path: /tmp/asr-assets/
           compression-level: 0
           retention-days: 1
           if-no-files-found: error
