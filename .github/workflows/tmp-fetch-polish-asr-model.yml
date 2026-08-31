@@ -1,4 +1,4 @@
-name: Temporary split ASR asset transfer
+name: Temporary Whisper small transfer
 
 on:
   push:
@@ -9,48 +9,25 @@ permissions:
   contents: read
 
 jobs:
-  fetch-assets:
+  fetch-model:
     runs-on: ubuntu-latest
     steps:
-      - name: Download and split assets
+      - name: Download Whisper small multilingual Q5_1
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p /tmp/asr-assets
+          mkdir -p /tmp/asr-model
           curl -L --fail --retry 5 --retry-delay 3 --connect-timeout 30 \
-            -o /tmp/asr-assets/crispasr-linux-x86_64.tar.gz \
-            'https://github.com/CrispStrobe/CrispASR/releases/download/v0.8.27/crispasr-linux-x86_64.tar.gz'
-          curl -L --fail --retry 5 --retry-delay 3 --connect-timeout 30 \
-            -o /tmp/asr-assets/ggml-large-v3-turbo-q5_0.bin \
-            'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q5_0.bin?download=true'
-          test -s /tmp/asr-assets/crispasr-linux-x86_64.tar.gz
-          test -s /tmp/asr-assets/ggml-large-v3-turbo-q5_0.bin
-          sha256sum /tmp/asr-assets/crispasr-linux-x86_64.tar.gz /tmp/asr-assets/ggml-large-v3-turbo-q5_0.bin | tee /tmp/asr-assets/SHA256SUMS.txt
-          split -b 300000000 -d -a 1 /tmp/asr-assets/ggml-large-v3-turbo-q5_0.bin /tmp/asr-assets/whisper.part.
-          ls -lh /tmp/asr-assets
-      - name: Upload runtime
+            -o /tmp/asr-model/ggml-small-q5_1.bin \
+            'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small-q5_1.bin?download=true'
+          test -s /tmp/asr-model/ggml-small-q5_1.bin
+          sha256sum /tmp/asr-model/ggml-small-q5_1.bin | tee /tmp/asr-model/SHA256SUMS.txt
+          ls -lh /tmp/asr-model
+      - name: Upload Whisper small
         uses: actions/upload-artifact@v4
         with:
-          name: crispasr-runtime
-          path: |
-            /tmp/asr-assets/crispasr-linux-x86_64.tar.gz
-            /tmp/asr-assets/SHA256SUMS.txt
-          compression-level: 0
-          retention-days: 1
-          if-no-files-found: error
-      - name: Upload Whisper part 0
-        uses: actions/upload-artifact@v4
-        with:
-          name: whisper-turbo-part-0
-          path: /tmp/asr-assets/whisper.part.0
-          compression-level: 0
-          retention-days: 1
-          if-no-files-found: error
-      - name: Upload Whisper part 1
-        uses: actions/upload-artifact@v4
-        with:
-          name: whisper-turbo-part-1
-          path: /tmp/asr-assets/whisper.part.1
+          name: whisper-small-q5-1
+          path: /tmp/asr-model/
           compression-level: 0
           retention-days: 1
           if-no-files-found: error
