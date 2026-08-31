@@ -1,4 +1,4 @@
-name: Temporary Whisper small transfer
+name: Temporary Whisper base transfer
 
 on:
   push:
@@ -12,21 +12,21 @@ jobs:
   fetch-model:
     runs-on: ubuntu-latest
     steps:
-      - name: Download Whisper small multilingual Q5_1
+      - name: Download Whisper base multilingual Q5_1
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p /tmp/asr-model
           curl -L --fail --retry 5 --retry-delay 3 --connect-timeout 30 \
-            -o /tmp/asr-model/ggml-small-q5_1.bin \
-            'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small-q5_1.bin?download=true'
-          test -s /tmp/asr-model/ggml-small-q5_1.bin
-          sha256sum /tmp/asr-model/ggml-small-q5_1.bin | tee /tmp/asr-model/SHA256SUMS.txt
+            -o /tmp/asr-model/ggml-base-q5_1.bin \
+            'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base-q5_1.bin?download=true'
+          test -s /tmp/asr-model/ggml-base-q5_1.bin
+          sha256sum /tmp/asr-model/ggml-base-q5_1.bin | tee /tmp/asr-model/SHA256SUMS.txt
           ls -lh /tmp/asr-model
-      - name: Upload Whisper small
+      - name: Upload Whisper base
         uses: actions/upload-artifact@v4
         with:
-          name: whisper-small-q5-1
+          name: whisper-base-q5-1
           path: /tmp/asr-model/
           compression-level: 0
           retention-days: 1
