@@ -1,4 +1,4 @@
-name: Temporary ASR runtime and model transfer
+name: Temporary split ASR asset transfer
 
 on:
   push:
@@ -12,7 +12,7 @@ jobs:
   fetch-assets:
     runs-on: ubuntu-latest
     steps:
-      - name: Download CrispASR runtime and Whisper Large v3 Turbo
+      - name: Download and split assets
         shell: bash
         run: |
           set -euo pipefail
@@ -25,13 +25,32 @@ jobs:
             'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q5_0.bin?download=true'
           test -s /tmp/asr-assets/crispasr-linux-x86_64.tar.gz
           test -s /tmp/asr-assets/ggml-large-v3-turbo-q5_0.bin
+          sha256sum /tmp/asr-assets/crispasr-linux-x86_64.tar.gz /tmp/asr-assets/ggml-large-v3-turbo-q5_0.bin | tee /tmp/asr-assets/SHA256SUMS.txt
+          split -b 300000000 -d -a 1 /tmp/asr-assets/ggml-large-v3-turbo-q5_0.bin /tmp/asr-assets/whisper.part.
           ls -lh /tmp/asr-assets
-          sha256sum /tmp/asr-assets/*
-      - name: Upload ASR assets
+      - name: Upload runtime
         uses: actions/upload-artifact@v4
         with:
-          name: asr-runtime-whisper-turbo
-          path: /tmp/asr-assets/
+          name: crispasr-runtime
+          path: |
+            /tmp/asr-assets/crispasr-linux-x86_64.tar.gz
+            /tmp/asr-assets/SHA256SUMS.txt
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
+      - name: Upload Whisper part 0
+        uses: actions/upload-artifact@v4
+        with:
+          name: whisper-turbo-part-0
+          path: /tmp/asr-assets/whisper.part.0
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error
+      - name: Upload Whisper part 1
+        uses: actions/upload-artifact@v4
+        with:
+          name: whisper-turbo-part-1
+          path: /tmp/asr-assets/whisper.part.1
           compression-level: 0
           retention-days: 1
           if-no-files-found: error
