@@ -1,4 +1,4 @@
-name: Temporary Whisper base transfer
+name: Temporary FireRed VAD transfer
 
 on:
   push:
@@ -12,22 +12,22 @@ jobs:
   fetch-model:
     runs-on: ubuntu-latest
     steps:
-      - name: Download Whisper base multilingual Q5_1
+      - name: Download FireRed multilingual VAD
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p /tmp/asr-model
+          mkdir -p /tmp/vad-model
           curl -L --fail --retry 5 --retry-delay 3 --connect-timeout 30 \
-            -o /tmp/asr-model/ggml-base-q5_1.bin \
-            'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base-q5_1.bin?download=true'
-          test -s /tmp/asr-model/ggml-base-q5_1.bin
-          sha256sum /tmp/asr-model/ggml-base-q5_1.bin | tee /tmp/asr-model/SHA256SUMS.txt
-          ls -lh /tmp/asr-model
-      - name: Upload Whisper base
+            -o /tmp/vad-model/firered-vad.gguf \
+            'https://huggingface.co/cstr/firered-vad-GGUF/resolve/main/firered-vad.gguf?download=true'
+          test -s /tmp/vad-model/firered-vad.gguf
+          sha256sum /tmp/vad-model/firered-vad.gguf | tee /tmp/vad-model/SHA256SUMS.txt
+          ls -lh /tmp/vad-model
+      - name: Upload VAD
         uses: actions/upload-artifact@v4
         with:
-          name: whisper-base-q5-1
-          path: /tmp/asr-model/
+          name: firered-vad
+          path: /tmp/vad-model/
           compression-level: 0
           retention-days: 1
           if-no-files-found: error
